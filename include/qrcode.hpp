@@ -1,3 +1,6 @@
+#ifndef __QRCODE_H__
+#define __QRCODE_H__
+
 #include <opencv2/opencv.hpp>
 #include <zbar.h>
 #include <ros/ros.h>
@@ -10,3 +13,4 @@ typedef struct
 } decodedObject;
 
 void decode(cv::Mat &im, std::vector<decodedObject>&decodedObjects);
+#endif

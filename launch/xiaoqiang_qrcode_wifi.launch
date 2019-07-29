@@ -4,7 +4,6 @@
         <remap from="~image" to="/camera_node/image_raw" />
         <!-- 语音文字输出话题 -->
         <remap from="~text" to="/xiaoqiang_tts/text" />
+        <param name="is_enabled" value="true" />
     </node>
-    <include file="$(find xiaoqiang_tts)/launch/tts_xunfei.launch" />
-    <include file="$(find usb_cam)/launch/ov2610.launch" />
 </launch>

@@ -51,10 +51,8 @@ void updateFrame(const sensor_msgs::ImageConstPtr &newFrame)
     {
         std::unique_lock<std::mutex> lock(frameLock);
         currentFrame = cvPtr->image;
-        ROS_INFO_STREAM("currentFrame: " << currentFrame.channels());
         newFrameFlag = true;
     }
-    ROS_INFO("Get new frame");
 }
 
 void ProcessQRCode()
@@ -72,14 +70,15 @@ void ProcessQRCode()
             qrcodeImage = currentFrame;
             newFrameFlag = false;
         }
+        if(exec("iwconfig 2>&1 | grep \"Link Quality\"").size() != 0){
+            Sleep(1000);
+            continue;
+        }
         std::vector<decodedObject> qrcodes;
         decode(qrcodeImage, qrcodes);
-        cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(lastFrame, "bgr8");;
-        cvtColor(qrcodeImage, cv_ptr->image, CV_GRAY2BGR);
-        imagePub.publish(cv_ptr->toImageMsg());
         if (qrcodes.size() == 0)
         {
-            Sleep(500);
+            Sleep(1000);
             continue;
         }
         for (auto it = qrcodes.begin(); it < qrcodes.end(); it++)
@@ -101,13 +100,14 @@ void ProcessQRCode()
             std_msgs::String qrNotify;
             qrNotify.data = "检测到wifi二维码，正在尝试连接";
             audioPub.publish(qrNotify);
-            if (exec("iwconfig 2>&1 | grep \"Link Quality\"").size() != 0)
+            std::stringstream ss;
+            ss << "nmcli device wifi connect " << ssid << " password " << password;
+            std::string res = exec(ss.str().c_str());
+            if (res.find("successfully activated") != std::string::npos)
             {
-                // already connected to wifi
-                qrNotify.data = "已经连接WIFI";
+                qrNotify.data = "连接wifi成功";
                 audioPub.publish(qrNotify);
-                ROS_INFO_STREAM(qrNotify.data);
-                Sleep(5000);
+                ROS_INFO_STREAM("连接wifi成功");
                 auto ipList = ListIpAddresses();
                 if (ipList.size() != 0)
                 {
@@ -116,25 +116,16 @@ void ProcessQRCode()
                     ROS_INFO_STREAM("当前机器人ip为 " << ipList[0] << std::endl);
                     Sleep(5000);
                 }
-                break;
-            }
-            std::stringstream ss;
-            ss << "nmcli device wifi connect " << ssid << " password " << password;
-            std::string res = exec(ss.str().c_str());
-            if (res.find("successfully activated") != std::string::npos)
-            {
-                qrNotify.data = "连接wifi成功";
-                ROS_INFO_STREAM("连接wifi成功");
             }
             else
             {
                 qrNotify.data = "连接wifi失败";
                 ROS_INFO_STREAM("连接wifi失败");
+                audioPub.publish(qrNotify);
             }
-            audioPub.publish(qrNotify);
             Sleep(5000);
         }
-        Sleep(1000);
+        Sleep(5000);
     }
 }
 

@@ -25,8 +25,8 @@
 * Author: Randoms
 *******************************************************************************/
 
-#ifndef __GREETING_NODE_H_
-#define __GREETING_NODE_H_
+#ifndef __QRCODE_WIFI_NODE_H__
+#define __QRCODE_WIFI_NODE_H__
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect.hpp>
